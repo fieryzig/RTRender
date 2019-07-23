@@ -48,7 +48,7 @@ Vec3f Renderer::cast_ray(const Ray & ray)
 {
 	HitInfo hit_info;
 
-	if (ray.dep > 10 || !scene_intersect(ray, hit_info)) {
+	if (ray.dep > 4 || !scene_intersect(ray, hit_info)) {
 		return Vec3f(0.2, 0.7, 0.8);
 	}
 

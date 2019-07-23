@@ -30,7 +30,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	GLFWwindow* window = glfwCreateWindow(1280, 720, "MeshSimple", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "RTRender", nullptr, nullptr);
 	if (window == nullptr) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -60,6 +60,7 @@ int main()
 	Material red_rubber(1.0, Vec4f(0.9, 0.1, 0.0, 0.0), Vec3f(0.3, 0.1, 0.1), 10.);
 	Material     mirror(1.0, Vec4f(0.0, 10.0, 0.8, 0.0), Vec3f(1.0, 1.0, 1.0), 1425.);
 
+	/*
 	Material mats[5] = { ivory, glass, mirror, red_rubber, ivory };
 
 	std::shared_ptr<Object> cubes[4];
@@ -76,15 +77,60 @@ int main()
 	cubes[1]->set_world(glm::translate(glm::mat4(1), glm::vec3(-1.0, -1.5, -12)));
 	cubes[2]->set_world(glm::scale(glm::translate(glm::mat4(1), glm::vec3(0, 0, -30)), glm::vec3(10,10,1)));
 	cubes[3]->set_world(glm::translate(glm::mat4(1), glm::vec3(4, 0, -5)));
+	*/
+	auto basic_shader = std::make_shared<Shader>("vertexshader.glsl", "fragshader.glsl");
 
+	auto flamingo = std::make_shared<Object>();
+	flamingo->model = std::make_shared<Model>("small.obj");
+	flamingo->material = red_rubber;
+	flamingo->shader = basic_shader;
+	flamingo->render_init();
+	flamingo->set_world(glm::translate(glm::mat4(1), glm::vec3(0,0.1,-1.5)));
+
+	auto cube_model = std::make_shared<Model>("cube.obj");
+	
+	auto cube = std::make_shared<Object>();
+	cube->model = cube_model;
+	cube->material = ivory;
+	cube->shader = basic_shader;
+	cube->render_init();
+	cube->set_world(glm::translate(glm::scale(glm::mat4(1), glm::vec3(0.7,0.05,0.7)), glm::vec3(0, -10, -2)));
+
+	auto y = 0.32f;
+	auto left_cube = std::make_shared<Object>();
+	left_cube->model = cube_model;
+	left_cube->material = glass;
+	left_cube->shader = basic_shader;
+	left_cube->render_init();
+	left_cube->set_world(glm::translate(glm::scale(glm::mat4(1), glm::vec3(0.01, 0.5, 0.3)), glm::vec3(-50, y, -2)));
+
+	auto right_cube = std::make_shared<Object>();
+	right_cube->model = cube_model;
+	right_cube->material = mirror;
+	right_cube->shader = basic_shader;
+	right_cube->render_init();
+	right_cube->set_world(glm::translate(glm::scale(glm::mat4(1), glm::vec3(0.01, 0.5, 0.3)), glm::vec3(50, y, -2)));
+
+	auto back_cube = std::make_shared<Object>();
+	back_cube->model = cube_model;
+	back_cube->material = mirror;
+	back_cube->shader = basic_shader;
+	back_cube->render_init();
+	back_cube->set_world(glm::translate(glm::scale(glm::mat4(1), glm::vec3(0.7, 0.6, 0.05)), glm::vec3(0, y, -50)));
 
 	std::shared_ptr<Scene> scene_ptr = std::make_shared<Scene>();
 	scene_ptr->camera = MainCamera;
-	
+	scene_ptr->add_object(flamingo);
+	scene_ptr->add_object(cube);
+	scene_ptr->add_object(left_cube);
+	scene_ptr->add_object(right_cube);
+	scene_ptr->add_object(back_cube);
+	/*
 	for (auto cube : cubes) {
 		cube->set_world(glm::rotate(cube->world, M_PI / 4, glm::vec3(0,1,0)));
 		scene_ptr->add_object(cube);
 	}
+	*/
 
 	scene_ptr->add_light(std::make_shared<Light>(Vec3f(0, 0, 0), 10));
 	scene_ptr->add_light(std::make_shared<Light>(Vec3f(30, 50, -25), 1.8));
@@ -108,24 +154,15 @@ int main()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGui::Begin("MeshSimple", &gui_flag);
-		ImGui::Text("Mesh Simple Demo");
-		ImGui::SliderFloat("Ratio", &ratio, 0.0f, 1.0f);
+		ImGui::Begin("RTRender", &gui_flag);
+		ImGui::Text("Ray Trace Render Demo");
 		
-		if (ImGui::Button("Simplify")) {
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			//object_ptr->model->simplify(1.0f - ratio);
-			//object_ptr->update_mesh();
-		}
 		ImGui::InputText("[Open] Filename", open_buf, IM_ARRAYSIZE(open_buf));
 		if (ImGui::Button("Open")) {
 			//object_ptr->model = std::make_shared<Model>(open_buf);
 			//object_ptr->render_init();
 		}
-		ImGui::InputText("[Save] Filename", save_buf, IM_ARRAYSIZE(save_buf));
-		if (ImGui::Button("Save")) {
-			//object_ptr->model->save(save_buf);
-		}
+		
 		if (ImGui::Button("Render")) {
 			raytracer.render();
 		}
